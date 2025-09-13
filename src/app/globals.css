@@ -4,7 +4,16 @@
   --background: #ffffff;
   --foreground: #171717;
 }
+/* In your globals.css or equivalent file */
 
+.scroll-bar-hide::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.scroll-bar-hide {
+  -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+  scrollbar-width: none;  /* For Firefox */
+}
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
