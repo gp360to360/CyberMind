@@ -12,6 +12,7 @@ export const FilterBar = ({ onSearch }: { onSearch: OnSearch }) => {
   const [location, setLocation] = useState("");
   const [jobType, setJobType] = useState("");
   const isInitialMount = useRef(true);
+  const [sliderTouched, setSliderTouched] = useState(false);
   // Salary state is now managed as an ANNUAL figure
   const [salaryRange, setSalaryRange] = useState({ min: 600000, max: 1500000 }); // e.g., 6 LPA to 15 LPA
 
@@ -24,28 +25,30 @@ export const FilterBar = ({ onSearch }: { onSearch: OnSearch }) => {
   const MAX_SALARY = 5000000; // 50 LPA
 
   useEffect(() => {
-    // On the first render, we set the ref to false and skip the search.
-    // This prevents an empty search from running when the component loads.
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
 
-    // Set up a timer to delay the API call.
     const timer = setTimeout(() => {
-      onSearch({
+      // Create the base filter object
+      const filtersToSearch: any = {
         jobTitle,
         location,
         jobType,
-        salaryMin: salaryRange.min,
-        salaryMax: salaryRange.max,
-      });
-    }, 500); // 500ms debounce delay
+      };
 
-    // Cleanup function: If a filter changes again before 500ms,
-    // the previous timer is cleared and a new one is set.
+      // Conditionally add the salary range
+      if (sliderTouched) {
+        filtersToSearch.salaryMin = salaryRange.min;
+        filtersToSearch.salaryMax = salaryRange.max;
+      }
+      
+      onSearch(filtersToSearch);
+    }, 500);
+
     return () => clearTimeout(timer);
-  }, [jobTitle, location, jobType, salaryRange]);
+  }, [jobTitle, location, jobType, salaryRange, sliderTouched, onSearch]);
 
   // Effect to handle mouse dragging logic for the slider
   useEffect(() => {
@@ -84,6 +87,7 @@ export const FilterBar = ({ onSearch }: { onSearch: OnSearch }) => {
   }, []);
 
   const handleMouseDown = (handle: 'min' | 'max') => {
+    setSliderTouched(true);
     draggingHandleRef.current = handle;
   };
 
