@@ -1,22 +1,29 @@
 "use client";
-import { useState,useRef,useEffect } from "react";
-export const FilterBar = ({onSearch}) => {
+import { useState, useRef, useEffect } from "react";
+type OnSearch = (filters: {
+  jobTitle: string;
+  location: string;
+  jobType: string;
+  salaryMin: number;
+  salaryMax: number;
+}) => void;
+export const FilterBar = ({ onSearch }: { onSearch: OnSearch }) => {
   const [jobTitle, setJobTitle] = useState("");
   const [location, setLocation] = useState("");
   const [jobType, setJobType] = useState("");
   const isInitialMount = useRef(true);
-    // Salary state is now managed as an ANNUAL figure
+  // Salary state is now managed as an ANNUAL figure
   const [salaryRange, setSalaryRange] = useState({ min: 600000, max: 1500000 }); // e.g., 6 LPA to 15 LPA
-  
-  const sliderRef = useRef(null);
-  const draggingHandleRef = useRef(null);
+
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const draggingHandleRef = useRef< "min" | "max" | null>(null);
   // const isInitialMount = useRef(true);
 
   // Constants for the slider range are also ANNUAL
   const MIN_SALARY = 0; // 0 LPA
   const MAX_SALARY = 5000000; // 50 LPA
 
-   useEffect(() => {
+  useEffect(() => {
     // On the first render, we set the ref to false and skip the search.
     // This prevents an empty search from running when the component loads.
     if (isInitialMount.current) {
@@ -26,26 +33,32 @@ export const FilterBar = ({onSearch}) => {
 
     // Set up a timer to delay the API call.
     const timer = setTimeout(() => {
-      onSearch({ jobTitle, location, jobType,salaryMin: salaryRange.min, 
-          salaryMax: salaryRange.max  });
+      onSearch({
+        jobTitle,
+        location,
+        jobType,
+        salaryMin: salaryRange.min,
+        salaryMax: salaryRange.max,
+      });
     }, 500); // 500ms debounce delay
 
     // Cleanup function: If a filter changes again before 500ms,
     // the previous timer is cleared and a new one is set.
     return () => clearTimeout(timer);
+  }, [jobTitle, location, jobType, salaryRange]);
 
-  }, [jobTitle, location, jobType,salaryRange]);
-
-   // Effect to handle mouse dragging logic for the slider
+  // Effect to handle mouse dragging logic for the slider
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e:MouseEvent) => {
       if (!draggingHandleRef.current || !sliderRef.current) return;
-      
+
       const sliderRect = sliderRef.current.getBoundingClientRect();
       let percentage = ((e.clientX - sliderRect.left) / sliderRect.width) * 100;
       percentage = Math.max(0, Math.min(100, percentage)); // Clamp between 0-100
-      
-      let value = Math.round(MIN_SALARY + (percentage / 100) * (MAX_SALARY - MIN_SALARY));
+
+      let value = Math.round(
+        MIN_SALARY + (percentage / 100) * (MAX_SALARY - MIN_SALARY)
+      );
 
       setSalaryRange((prev) => {
         if (draggingHandleRef.current === "min") {
@@ -57,8 +70,10 @@ export const FilterBar = ({onSearch}) => {
         }
       });
     };
-    
-    const handleMouseUp = () => { draggingHandleRef.current = null; };
+
+    const handleMouseUp = () => {
+      draggingHandleRef.current = null;
+    };
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
@@ -68,10 +83,14 @@ export const FilterBar = ({onSearch}) => {
     };
   }, []);
 
-  const handleMouseDown = (handle) => { draggingHandleRef.current = handle; };
-  
-  const minPercentage = ((salaryRange.min - MIN_SALARY) / (MAX_SALARY - MIN_SALARY)) * 100;
-  const maxPercentage = ((salaryRange.max - MIN_SALARY) / (MAX_SALARY - MIN_SALARY)) * 100;
+  const handleMouseDown = (handle: 'min' | 'max') => {
+    draggingHandleRef.current = handle;
+  };
+
+  const minPercentage =
+    ((salaryRange.min - MIN_SALARY) / (MAX_SALARY - MIN_SALARY)) * 100;
+  const maxPercentage =
+    ((salaryRange.max - MIN_SALARY) / (MAX_SALARY - MIN_SALARY)) * 100;
   return (
     <div className="w-full bg-white rounded-lg mt">
       <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
@@ -117,7 +136,11 @@ export const FilterBar = ({onSearch}) => {
             />
           </svg>
 
-          <select value={location} onChange={(e) => setLocation(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-700 appearance-none">
+          <select
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full bg-transparent focus:outline-none text-gray-700 appearance-none"
+          >
             <option value=""> Preferred Location</option>
             <option value="Remote">Remote</option>
             <option value="Chennai">Chennai</option>
@@ -146,7 +169,11 @@ export const FilterBar = ({onSearch}) => {
             />
           </svg>
 
-          <select value={jobType} onChange={(e) => setJobType(e.target.value)} className="w-full bg-transparent focus:outline-none text-gray-700 appearance-none">
+          <select
+            value={jobType}
+            onChange={(e) => setJobType(e.target.value)}
+            className="w-full bg-transparent focus:outline-none text-gray-700 appearance-none"
+          >
             <option value="">Choose Job Type</option>
             <option value="Internship">Internship</option>
             <option value="Full-Time">Full-Time</option>
@@ -158,17 +185,36 @@ export const FilterBar = ({onSearch}) => {
         {/* Salary Range Slider */}
         <div className="p-2">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-black">Salary Per Month</span>
+            <span className="text-sm font-medium text-black">
+              Salary Per Month
+            </span>
             {/* Display is converted to MONTHLY */}
-            <span className="text-sm font-bold text-black">{formatCurrency(salaryRange.min / 12)} - {formatCurrency(salaryRange.max / 12)}</span>
+            <span className="text-sm font-bold text-black">
+              {formatCurrency(salaryRange.min / 12)} -{" "}
+              {formatCurrency(salaryRange.max / 12)}
+            </span>
           </div>
           <div className="relative pt-1" ref={sliderRef}>
             <div className="relative w-full h-0.5 bg-gray-300 rounded-full">
-              <div className="absolute h-0.5 bg-black rounded-full" style={{ left: `${minPercentage}%`, width: `${maxPercentage - minPercentage}%` }}></div>
-              <div onMouseDown={() => handleMouseDown('min')} className="absolute w-4 h-4 bg-black border-2 border-black rounded-full -top-1.5 transform -translate-x-1/2 flex items-center justify-center cursor-pointer" style={{ left: `${minPercentage}%` }}>
+              <div
+                className="absolute h-0.5 bg-black rounded-full"
+                style={{
+                  left: `${minPercentage}%`,
+                  width: `${maxPercentage - minPercentage}%`,
+                }}
+              ></div>
+              <div
+                onMouseDown={() => handleMouseDown("min")}
+                className="absolute w-4 h-4 bg-black border-2 border-black rounded-full -top-1.5 transform -translate-x-1/2 flex items-center justify-center cursor-pointer"
+                style={{ left: `${minPercentage}%` }}
+              >
                 <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
               </div>
-              <div onMouseDown={() => handleMouseDown('max')} className="absolute w-4 h-4 bg-black border-2 border-black rounded-full -top-1.5 transform -translate-x-1/2 flex items-center justify-center cursor-pointer" style={{ left: `${maxPercentage}%` }}>
+              <div
+                onMouseDown={() => handleMouseDown("max")}
+                className="absolute w-4 h-4 bg-black border-2 border-black rounded-full -top-1.5 transform -translate-x-1/2 flex items-center justify-center cursor-pointer"
+                style={{ left: `${maxPercentage}%` }}
+              >
                 <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
               </div>
             </div>
@@ -178,7 +224,7 @@ export const FilterBar = ({onSearch}) => {
     </div>
   );
 };
-const formatCurrency = (value) => {
+const formatCurrency = (value: number) => {
   // Converts a number into a formatted string like "₹50k"
   return `₹${Math.round(value / 1000)}k`;
 };

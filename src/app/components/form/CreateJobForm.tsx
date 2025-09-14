@@ -53,7 +53,21 @@ const DoubleArrowIcon = () => (
 );
 
 // --- Reusable Input Component ---
-const InputField = ({ label, name, placeholder, register, error }) => (
+type InputFieldProps = {
+  label: string;
+  name: string;
+  placeholder: string;
+  register: any;
+  error?: any;
+};
+
+const InputField = ({
+  label,
+  name,
+  placeholder,
+  register,
+  error,
+}: InputFieldProps) => (
   <div>
     <label
       htmlFor={name}
@@ -74,8 +88,18 @@ const InputField = ({ label, name, placeholder, register, error }) => (
     {error && <p className="text-red-500 text-xs mt-1">{error.message}</p>}
   </div>
 );
-
-export default function CreateJobForm({ onClose }) {
+type JobData = {
+  jobTitle: string;
+  companyName: string;
+  location: string;
+  jobType: string;
+  salaryMin: string;
+  salaryMax: string;
+  description: string;
+  requirements?: string;
+  responsibilities?: string;
+};
+export default function CreateJobForm({ onClose }: { onClose: () => void }) {
   // MODIFIED: Added 'watch' to monitor form field values
   const {
     register,
@@ -86,7 +110,7 @@ export default function CreateJobForm({ onClose }) {
     formState: { errors },
   } = useForm({
     mode: "onTouched",
-    defaultValues: JSON.parse(localStorage.getItem('jobDraft')) || {
+    defaultValues: JSON.parse(localStorage.getItem("jobDraft") || "{}") || {
       jobTitle: "",
       companyName: "",
       location: "",
@@ -103,8 +127,18 @@ export default function CreateJobForm({ onClose }) {
   const jobTypeValue = watch("jobType");
   const deadlineValue = watch("applicationDeadline");
 
-  const onSubmit = async (data) => {
-    const payload = { ...data, jobDescription: data.description,status:"published" };
+  const onSubmit = async (data: JobData) => {
+    const payload: {
+      jobDescription: string;
+      status: "published";
+      description?: string;
+      requirements?: string;
+      responsibilities?: string;
+    } = {
+      ...data,
+      jobDescription: data.description,
+      status: "published",
+    };
     delete payload.description;
     if (!payload.requirements) delete payload.requirements;
     if (!payload.responsibilities) delete payload.responsibilities;
@@ -113,7 +147,10 @@ export default function CreateJobForm({ onClose }) {
 
     try {
       // STEP 2: Replace fetch with axios.post
-      const response = await axios.post("https://cybermind-backend-pj5g.onrender.com/jobs", payload);
+      const response = await axios.post(
+        "https://cybermind-backend-pj5g.onrender.com/jobs",
+        payload
+      );
 
       console.log("Successfully posted job:", response.data);
       toast.success("Job opening successfully published.", {
@@ -135,7 +172,7 @@ export default function CreateJobForm({ onClose }) {
   const handleSaveDraft = () => {
     const draftData = getValues();
     try {
-    localStorage.setItem('jobDraft', JSON.stringify(draftData));
+      localStorage.setItem("jobDraft", JSON.stringify(draftData));
       console.log("Saving draft data to localStorage:", draftData);
       toast.success("Draft saved successfully.");
       onClose();
@@ -214,9 +251,9 @@ export default function CreateJobForm({ onClose }) {
                     <ArrowDownIcon />
                   </div>
                 </div>
-                {errors.location && (
+                {errors.location?.message && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.location.message}
+                    {errors.location?.message as string} 
                   </p>
                 )}
               </div>
@@ -258,7 +295,7 @@ export default function CreateJobForm({ onClose }) {
                 </div>
                 {errors.jobType && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.jobType.message}
+                    {errors.jobType.message as string}
                   </p>
                 )}
               </div>
@@ -308,12 +345,12 @@ export default function CreateJobForm({ onClose }) {
                 </div>
                 {errors.salaryMin && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.salaryMin.message}
+                    {errors.salaryMin.message as string}
                   </p>
                 )}
                 {errors.salaryMax && !errors.salaryMin && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.salaryMax.message}
+                    {errors.salaryMax.message as string}
                   </p>
                 )}
               </div>
@@ -353,7 +390,7 @@ export default function CreateJobForm({ onClose }) {
                 </div>
                 {errors.applicationDeadline && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.applicationDeadline.message}
+                    {errors.applicationDeadline.message as string}
                   </p>
                 )}
               </div>
@@ -369,7 +406,7 @@ export default function CreateJobForm({ onClose }) {
               </label>
               <textarea
                 id="description"
-                rows="4"
+                rows={4}
                 placeholder="Please share a description to let the candidate know more about the job role. Write description in this formate 1. point one 
               2. point two 
               3. point three"
@@ -387,7 +424,7 @@ export default function CreateJobForm({ onClose }) {
               ></textarea>
               {errors.description && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.description.message}
+                  {errors.description.message as string}
                 </p>
               )}
             </div>

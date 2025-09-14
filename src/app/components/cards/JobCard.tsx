@@ -1,19 +1,19 @@
 "use client";
 
 import React from "react";
-
+import type { Job } from "../../types/index";
 // The component is defined as a constant
-export const JobCard = ({ job }) => {
+ const JobCard = ({ job }:{job:Job}) => {
   // Add a guard clause to prevent errors if the job prop is missing
   if (!job) {
     return null; // Or render a placeholder/skeleton card
   }
 
-    const formatTimeAgo = (dateString) => {
+    const formatTimeAgo = (dateString: string) => {
     if (!dateString) return ""; // Handle case where date is missing
     const postedDate = new Date(dateString);
     const now = new Date();
-    const diffInSeconds = Math.floor((now - postedDate) / 1000);
+    const diffInSeconds = Math.floor((now.getTime() - postedDate.getTime()) / 1000);
 
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     const diffInHours = Math.floor(diffInMinutes / 60);
@@ -145,5 +145,5 @@ export const JobCard = ({ job }) => {
     </div>
   );
 };
-
+export default JobCard;
 // Use a default export to match the import statement in the parent component
