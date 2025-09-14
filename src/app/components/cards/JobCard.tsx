@@ -116,7 +116,12 @@ export const JobCard = ({ job }) => {
             />
           </svg>
           <span>
-             {job.salaryMax}LPA
+            {(() => {
+              const salary = Number(job.salaryMax);
+              if (isNaN(salary)) return "N/A";
+              const lakhs = salary / 100000;
+              return lakhs % 1 === 0 ? `${lakhs} LPA` : `${lakhs.toFixed(1)} LPA`;
+            })()}
           </span>
         </div>
       </div>
