@@ -2,6 +2,7 @@ import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useState } from "react";
 // import "react-toastify/dist/ReactToastify.css";
 // The API endpoint to post job data
 // http://localhost:3000/jobs
@@ -126,8 +127,10 @@ export default function CreateJobForm({ onClose }: { onClose: () => void }) {
   const locationValue = watch("location");
   const jobTypeValue = watch("jobType");
   const deadlineValue = watch("applicationDeadline");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit = async (data: JobData) => {
+    setIsSubmitting(true);
     const payload: {
       jobDescription: string;
       status: "published";
@@ -166,6 +169,8 @@ export default function CreateJobForm({ onClose }: { onClose: () => void }) {
       const errorMessage =
         (error as any).response?.data?.message || (error as any).message;
       toast.error(`Failed to publish job opening: ${errorMessage}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -253,7 +258,7 @@ export default function CreateJobForm({ onClose }: { onClose: () => void }) {
                 </div>
                 {errors.location?.message && (
                   <p className="text-red-500 text-xs mt-1">
-                    {errors.location?.message as string} 
+                    {errors.location?.message as string}
                   </p>
                 )}
               </div>
@@ -434,6 +439,7 @@ export default function CreateJobForm({ onClose }: { onClose: () => void }) {
               <button
                 type="button"
                 onClick={handleSaveDraft}
+                disabled={isSubmitting}
                 className="flex items-center gap-2 px-6 py-2.5 border-2 border-black rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
               >
                 Save Draft
@@ -455,6 +461,7 @@ export default function CreateJobForm({ onClose }: { onClose: () => void }) {
               </button>
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="flex items-center gap-2 px-8 py-2.5 bg-[#00AAFF] text-white font-semibold rounded-lg shadow-md  transition-all duration-300"
               >
                 Publish
